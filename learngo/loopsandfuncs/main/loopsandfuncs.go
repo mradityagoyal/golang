@@ -28,6 +28,7 @@ import (
 func Sqrt(x float64) float64 {
 	z := 1.0
 
+	//keep recalculating delta and updating z, till delta is less than 0.1% of x.
 	for delta := z*z - x; math.Abs(delta)/x > 0.001; delta = z*z - x {
 		z -= delta / (2 * z)
 	}
