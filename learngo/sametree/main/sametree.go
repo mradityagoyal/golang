@@ -38,35 +38,50 @@ Same(tree.New(1), tree.New(1)) should return true, and Same(tree.New(1), tree.Ne
 
 import (
 	"fmt"
+
 	"golang.org/x/tour/tree"
 )
 
 // Walk walks the tree t sending all values
 // from the tree to the channel ch.
-func Walk(t *tree.Tree, ch chan int){
+func walkRecurse(t *tree.Tree, ch chan int) {
 
+	if t == nil {
+		return
+	}
 	if t.Left != nil {
-		Walk(t.Left, ch)
+		walkRecurse(t.Left, ch)
 	}
 	ch <- t.Value
 	if t.Right != nil {
-		Walk(t.Right, ch)
+		walkRecurse(t.Right, ch)
 	}
+	return
+}
+
+func Walk(t *tree.Tree, ch chan int) {
+	walkRecurse(t, ch)
+	close(ch)
 	return
 }
 
 // Same determines whether the trees
 // t1 and t2 contain the same values.
-//func Same(t1, t2 *tree.Tree) bool{
-//
-//}
+func Same(t1, t2 *tree.Tree) bool {
+	t1ch, t2ch := make(chan int), make(chan int)
+	go Walk(t1, t1ch)
+	go Walk(t2, t2ch)
+
+	for i := range t1ch {
+		if i != <-t2ch {
+			return false
+		}
+	}
+	return true
+}
 
 func main() {
-	t := tree.New(1)
-	ch := make(chan int)
-	go Walk(t, ch)
-	for i:= range ch {
-		fmt.Println(i)
-	}
+	t1, t2 := tree.New(1), tree.New(1)
+	fmt.Printf("are same : %t", Same(t1, t2))
 
 }
